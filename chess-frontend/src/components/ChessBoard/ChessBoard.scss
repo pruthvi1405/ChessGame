@@ -1,0 +1,22 @@
+.board-div {
+    height: 100vh;
+    
+  
+  .board {
+    width: 800px;
+    height: 800px;
+    margin: 1rem auto;
+    display: grid;
+    grid-template-columns: repeat(8,100px);
+    grid-template-rows: repeat(8,100px);
+  
+    // box-shadow:
+    //   0 0 20px 0 black,
+    //   0 0 30px 0 #5d0379,
+    //   0 0 30px 0 rgb(179, 22, 179);
+
+  }
+
+}
+
+  
