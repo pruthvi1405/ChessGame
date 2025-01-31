@@ -4,10 +4,22 @@
     display: grid;
     place-content: center;
 
-    img{
-        width: 70px;
-        height: 70px;
+    .img{
+        width: 100px;
+        height: 100px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 80px;
     }
+
+    .img:hover{
+        cursor: grab;
+    }
+
+    .img:active{
+        cursor: grabbing;
+    }
+
   }
   .purple{
     background-color: rgb(62, 61, 61)
