@@ -16,6 +16,15 @@ export enum TeamType{
   OUR
 }
 
+
+export interface Piece {
+  image: string;
+  x: number;
+  y: number;
+  type:PieceType;
+  team:TeamType;
+}
+
 function ChessBoard() {
 
   const chessboardRef = useRef<HTMLDivElement>(null)
@@ -23,14 +32,6 @@ function ChessBoard() {
   const rows = [0, 1, 2, 3, 4, 5, 6, 7];
   let squares = [];
   const refree=new Refree();
-
-  interface Piece {
-    image: string;
-    x: number;
-    y: number;
-    type:PieceType
-    team:TeamType
-  }
 
  
 
@@ -81,7 +82,7 @@ function ChessBoard() {
     }
   }
 
-  const movePiece=(e)=>{
+  const movePiece=(e: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
     const chessboard=chessboardRef.current;
     if(activePiece && chessboard){
       const minX=chessboard.offsetLeft-25;
@@ -100,38 +101,40 @@ function ChessBoard() {
     }
     }
 
-  const dropPiece=(e)=>{
-    const chessboard=chessboardRef.current;
-    if(activePiece && chessboard){
-      let x=Math.floor((e.clientX-chessboard.offsetLeft)/100)
-      let y=Math.abs(Math.ceil((e.clientY-chessboard.offsetTop-800)/100))
-      
-      
-      setPieces((value)=>{
-        const piece=value.map((p)=>{
-          if(p.x===gridX && p.y===gridY){
-            const validMove=refree.isvalid(gridX,gridY,x,y,p.type,p.team)
-              if(validMove){
-                p.x=x,
-                p.y=y
-              }
-              else{
-                activePiece.style.position='relative';
-                activePiece.style.removeProperty("top");
-                activePiece.style.removeProperty("left");
-
-              } 
-            
-
-              return { ...p, x:gridX, y:gridY }; 
+    const dropPiece = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      const chessboard = chessboardRef.current;
+      if (activePiece && chessboard) {
+        let x = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
+        let y = Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100));
+    
+        let currentPiece = pieces.find((p) => p.x === gridX && p.y === gridY);
+        let attackedPiece = pieces.find((p) => p.x === x && p.y === y);
+    
+        if (currentPiece) {
+          const validMove = refree.isvalid(gridX, gridY, x, y, currentPiece.type, currentPiece.team, pieces); 
+    
+          if (validMove) {
+            // Create a new array with updated positions
+            const updatedPieces = pieces
+              .filter((p) => !(p.x === x && p.y === y)) // Remove attacked piece
+              .map((p) => {
+                if (p.x === gridX && p.y === gridY) {
+                  return { ...p, x, y }; // Move the current piece
+                }
+                return p;
+              });
+    
+            setPieces(updatedPieces);
+          } else {
+            activePiece.style.position = "relative";
+            activePiece.style.removeProperty("top");
+            activePiece.style.removeProperty("left");
           }
-          return p;
-        })
-        return pieces;
-      });
-      setActivePiece(null);
-    }
-  }
+        }
+        setActivePiece(null);
+      }
+    };
+    
 
   for (let y = 7; y >= 0; y--) {
     for (let x = 0; x < 8; x++) {
