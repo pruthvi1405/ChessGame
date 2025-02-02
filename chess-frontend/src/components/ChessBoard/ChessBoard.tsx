@@ -23,6 +23,7 @@ export interface Piece {
   y: number;
   type:PieceType;
   team:TeamType;
+  enPassant?:boolean
 }
 
 function ChessBoard() {
@@ -104,22 +105,57 @@ function ChessBoard() {
     const dropPiece = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       const chessboard = chessboardRef.current;
       if (activePiece && chessboard) {
-        let x = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
-        let y = Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100));
+        const targetX = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
+        const targetY = Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100));
     
-        let currentPiece = pieces.find((p) => p.x === gridX && p.y === gridY);
-        let attackedPiece = pieces.find((p) => p.x === x && p.y === y);
+        const currentPiece = pieces.find(p => p.x === gridX && p.y === gridY);
     
         if (currentPiece) {
-          const validMove = refree.isvalid(gridX, gridY, x, y, currentPiece.type, currentPiece.team, pieces); 
+          const enPassantMove = refree.isEnpassantMove(
+            gridX,
+            gridY,
+            targetX,
+            targetY,
+            currentPiece.type,
+            currentPiece.team,
+            pieces
+          );
     
-          if (validMove) {
-            // Create a new array with updated positions
+          const validMove = refree.isvalid(
+            gridX,
+            gridY,
+            targetX,
+            targetY,
+            currentPiece.type,
+            currentPiece.team,
+            pieces
+          );
+    
+          if (enPassantMove) {
+            // Handle en passant: remove the enemy pawn at (targetX, gridY)
             const updatedPieces = pieces
-              .filter((p) => !(p.x === x && p.y === y)) // Remove attacked piece
-              .map((p) => {
+              .filter(p => !(p.x === targetX && p.y === gridY && p.team !== currentPiece.team))
+              .map(p => {
                 if (p.x === gridX && p.y === gridY) {
-                  return { ...p, x, y }; // Move the current piece
+                  return { ...p, x: targetX, y: targetY, enPassant: false };
+                }
+                return p;
+              });
+    
+            setPieces(updatedPieces);
+          } else if (validMove) {
+            // Handle normal move
+            const updatedPieces = pieces
+              .filter(p => !(p.x === targetX && p.y === targetY && p.team !== currentPiece.team))
+              .map(p => {
+                if (p.x === gridX && p.y === gridY) {
+                  // Ensure en passant is set properly if moving two squares
+                  const isDoubleStep = p.type === PieceType.PAWN && Math.abs(targetY - gridY) === 2;
+                  return { ...p, x: targetX, y: targetY, enPassant: isDoubleStep };
+                }
+                // Clear en passant for all other pawns (only one turn available)
+                if (p.type === PieceType.PAWN) {
+                  return { ...p, enPassant: false };
                 }
                 return p;
               });
@@ -131,9 +167,11 @@ function ChessBoard() {
             activePiece.style.removeProperty("left");
           }
         }
+    
         setActivePiece(null);
       }
     };
+    
     
 
   for (let y = 7; y >= 0; y--) {

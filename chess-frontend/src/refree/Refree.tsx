@@ -24,6 +24,48 @@ export default class Refree {
       
     }
 
+    isEnpassantMove(
+      px: number,
+      py: number,
+      x: number,
+      y: number,
+      type: PieceType,
+      team: TeamType,
+      boardState: Piece[]
+    ): boolean {
+      if (type !== PieceType.PAWN) return false;
+    
+      const direction = team === TeamType.OUR ? 1 : -1;
+      const specialRow= team === TeamType.OUR ? 3: 4
+    
+      if (Math.abs(x - px) !== 1 || y - py !== direction) return false;
+    
+      // Destination square must be empty.
+      if (this.isOccupied(x,y,boardState)) return false;
+      
+      if(py!=specialRow) return false;
+      // Find an opponent's pawn in the correct en passant capture position.
+      const enemyPawn = boardState.find(p => 
+        p.x === x &&       // The enemy pawn is in the same column as the destination square
+        p.y === py &&     // The enemy pawn is in the same row as the capturing pawn's starting row
+        // p.enPassant === true && // The enemy pawn must have moved two squares in the last turn
+        p.team !== team    // The pawn must belong to the opponent
+      );
+    
+      // Log debugging information
+      console.log("Checking En Passant Move:");
+      console.log(`Pawn at (${px}, ${py}) moving to (${x}, ${y})`);
+      console.log(`Direction: ${direction}`);
+      console.log(`Enemy Pawn at (${x}, ${py}) → ${enemyPawn ? "Eligible for Capture" : "Not Found"}`);
+      
+      if (enemyPawn) {
+        console.log(`Captured Pawn Details: ${JSON.stringify(enemyPawn, null, 2)}`);
+      }
+    
+      return !!enemyPawn;
+    }
+    
+
 
     isvalid(
       px: number,
